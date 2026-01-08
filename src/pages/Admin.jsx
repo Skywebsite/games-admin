@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://games-be.vercel.app';
+
 const Admin = () => {
     const [formData, setFormData] = useState({
         title: '',
@@ -22,7 +24,7 @@ const Admin = () => {
         try {
             setGamesLoading(true);
             setGamesError('');
-            const res = await axios.get('http://localhost:5000/api/games');
+            const res = await axios.get(`${API_BASE_URL}/api/games`);
             setGames(Array.isArray(res.data) ? res.data : []);
         } catch (e) {
             setGames([]);
@@ -77,7 +79,7 @@ const Admin = () => {
         const confirmed = window.confirm('Delete this game?');
         if (!confirmed) return;
         try {
-            await axios.delete(`http://localhost:5000/api/games/${id}`);
+            await axios.delete(`${API_BASE_URL}/api/games/${id}`);
             if (editingGameId === id) {
                 cancelEdit();
             }
@@ -112,13 +114,13 @@ const Admin = () => {
 
         try {
             if (editingGameId) {
-                await axios.put(`http://localhost:5000/api/games/${editingGameId}`, data, {
+                await axios.put(`${API_BASE_URL}/api/games/${editingGameId}`, data, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
                 });
             } else {
-                await axios.post('http://localhost:5000/api/games', data, {
+                await axios.post(`${API_BASE_URL}/api/games`, data, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
