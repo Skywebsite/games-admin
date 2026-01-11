@@ -3,15 +3,21 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
-    const [email, setEmail] = useState('');
+    const [id, setId] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
     const { login } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await login(email, password);
-        navigate('/');
+        setError('');
+        const success = await login(id, password);
+        if (success) {
+            navigate('/');
+        } else {
+            setError('Invalid Admin ID or Password');
+        }
     };
 
     return (
@@ -20,14 +26,19 @@ const Login = () => {
                 <h2 className="text-3xl font-bold text-center text-white mb-8">Welcome Back</h2>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
+                    {error && (
+                        <div className="bg-red-500/10 border border-red-500 text-red-500 p-3 rounded-lg text-sm text-center">
+                            {error}
+                        </div>
+                    )}
                     <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-2">Email Address</label>
+                        <label className="block text-sm font-medium text-gray-400 mb-2">Admin ID</label>
                         <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full bg-gray-700 border border-gray-600 rounded-lg py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                            placeholder="you@example.com"
+                            type="text"
+                            value={id}
+                            onChange={(e) => setId(e.target.value)}
+                            className="w-full bg-gray-700 border border-gray-600 rounded-lg py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono"
+                            placeholder="skywebg"
                             required
                         />
                     </div>

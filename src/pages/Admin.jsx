@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://games-be.vercel.app';
 
 const Admin = () => {
+    const { user, loading: authLoading } = useAuth();
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         title: '',
         category: '',
@@ -35,8 +39,16 @@ const Admin = () => {
     };
 
     useEffect(() => {
-        fetchGames();
-    }, []);
+        if (!authLoading && !user) {
+            navigate('/login');
+        }
+        if (user) {
+            fetchGames();
+        }
+    }, [user, authLoading, navigate]);
+
+    if (authLoading) return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">Loading Auth...</div>;
+    if (!user) return null;
 
     const handleChange = (e) => {
         if (e.target.name === 'previewGif' || e.target.name === 'thumbnail') {
@@ -233,62 +245,62 @@ const Admin = () => {
 
                         </div>
 
-                    <div className="md:col-span-2 pt-4">
-                        <button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform active:scale-95 shadow-lg">
-                            {editingGameId ? 'Update Game' : 'Publish Game'}
-                        </button>
-                    </div>
-
-                    {editingGameId && (
-                        <div className="md:col-span-2">
-                            <button type="button" onClick={cancelEdit} className="w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition-all">
-                                Cancel Edit
+                        <div className="md:col-span-2 pt-4">
+                            <button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform active:scale-95 shadow-lg">
+                                {editingGameId ? 'Update Game' : 'Publish Game'}
                             </button>
                         </div>
+
+                        {editingGameId && (
+                            <div className="md:col-span-2">
+                                <button type="button" onClick={cancelEdit} className="w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition-all">
+                                    Cancel Edit
+                                </button>
+                            </div>
+                        )}
+                    </form>
+                </div>
+
+                <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+                    <h2 className="text-xl font-semibold mb-6">Published Games</h2>
+
+                    {gamesLoading && (
+                        <div className="text-gray-400">Loading games...</div>
                     )}
-                </form>
-            </div>
 
-            <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
-                <h2 className="text-xl font-semibold mb-6">Published Games</h2>
+                    {!gamesLoading && gamesError && (
+                        <div className="text-red-400">{gamesError}</div>
+                    )}
 
-                {gamesLoading && (
-                    <div className="text-gray-400">Loading games...</div>
-                )}
+                    {!gamesLoading && !gamesError && games.length === 0 && (
+                        <div className="text-gray-400">No games found.</div>
+                    )}
 
-                {!gamesLoading && gamesError && (
-                    <div className="text-red-400">{gamesError}</div>
-                )}
+                    <div className="space-y-4">
+                        {games.map((game) => (
+                            <div key={game._id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gray-900 border border-gray-700 rounded-xl p-4">
+                                <div className="flex items-center gap-4">
+                                    <img src={game.thumbnail} alt={game.title} className="w-20 h-14 object-cover rounded-lg border border-gray-700" />
+                                    <div>
+                                        <div className="font-semibold text-white">{game.title}</div>
+                                        <div className="text-sm text-gray-400">{game.category}</div>
+                                        <div className="text-xs text-gray-500 break-all">{game.slug}</div>
+                                    </div>
+                                </div>
 
-                {!gamesLoading && !gamesError && games.length === 0 && (
-                    <div className="text-gray-400">No games found.</div>
-                )}
-
-                <div className="space-y-4">
-                    {games.map((game) => (
-                        <div key={game._id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gray-900 border border-gray-700 rounded-xl p-4">
-                            <div className="flex items-center gap-4">
-                                <img src={game.thumbnail} alt={game.title} className="w-20 h-14 object-cover rounded-lg border border-gray-700" />
-                                <div>
-                                    <div className="font-semibold text-white">{game.title}</div>
-                                    <div className="text-sm text-gray-400">{game.category}</div>
-                                    <div className="text-xs text-gray-500 break-all">{game.slug}</div>
+                                <div className="flex gap-3">
+                                    <button type="button" onClick={() => startEdit(game)} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">
+                                        Edit
+                                    </button>
+                                    <button type="button" onClick={() => handleDelete(game._id)} className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg">
+                                        Delete
+                                    </button>
                                 </div>
                             </div>
-
-                            <div className="flex gap-3">
-                                <button type="button" onClick={() => startEdit(game)} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">
-                                    Edit
-                                </button>
-                                <button type="button" onClick={() => handleDelete(game._id)} className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg">
-                                    Delete
-                                </button>
-                            </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
             </div>
-        </div>
         </div >
     );
 };

@@ -6,26 +6,28 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Mock checking auth status
+    // Check for saved auth on mount
     useEffect(() => {
-        const checkAuth = async () => {
-            // In real app, verify token with backend
-            // const res = await fetch('/api/auth/me');
-            // const data = await res.json();
-            // if (res.ok) setUser(data);
-            setLoading(false);
-        };
-        checkAuth();
+        const savedUser = localStorage.getItem('adminUser');
+        if (savedUser) {
+            setUser(JSON.parse(savedUser));
+        }
+        setLoading(false);
     }, []);
 
-    const login = async (email, password) => {
-        // Implement login logic
-        console.log("Login", email, password);
-        setUser({ username: "DemoUser", role: "user" }); // Mock
+    const login = async (id, password) => {
+        if (id === 'skywebg' && password === 'sky@123') {
+            const adminUser = { username: "skywebg", role: "admin" };
+            setUser(adminUser);
+            localStorage.setItem('adminUser', JSON.stringify(adminUser));
+            return true;
+        }
+        return false;
     };
 
     const logout = () => {
         setUser(null);
+        localStorage.removeItem('adminUser');
     };
 
     return (
